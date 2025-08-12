@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Weather App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #89f7fe, #66a6ff);
+      margin: 0;
+      padding: 20px;
+    }
+    .city {
+      border: none;
+      padding: 15px;
+      margin: 10px;
+      display: inline-block;
+      width: 180px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      color: #333;
+    }
+    .city:hover {
+      transform: scale(1.05);
+      box-shadow: 0px 6px 15px rgba(0,0,0,0.2);
+    }
+    .city h2 {
+      margin-bottom: 5px;
+    }
+    img {
+      width: 80px;
+      height: 80px;
+    }
+    small {
+      color: #555;
+    }
+    /* Temperature-based coloring */
+    .hot {
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+      color: #5a2d0c;
+    }
+    .warm {
+      background: linear-gradient(135deg, #fddb92, #d1fdff);
+      color: #5a4c0c;
+    }
+    .cool {
+      background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+      color: #0c335a;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Weather App</h1>
+  <div id="weather">Loading...</div>
+
+  <script>
+    const apiKey = "64d66ba7b7ec240079255952fb953f7b"; // replace with your actual key
+    const cities = ["Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai"];
+
+    async function getDailyMinMax(city) {
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city},IN&appid=${apiKey}&units=metric`;
+      try {
+        const res = await fetch(forecastUrl);
+        const data = await res.json();
+        if (data.cod !== "200") {
+          throw new Error(data.message || "API error");
+        }
+
+        const today = new Date().toISOString().split("T")[0];
+        const todayData = data.list.filter(item => item.dt_txt.startsWith(today));
+
+        if (!todayData.length) {
+          throw new Error("No data for today");
+        }
+
+        let minTemp = Number.POSITIVE_INFINITY;
+        let maxTemp = Number.NEGATIVE_INFINITY;
+
+        todayData.forEach(item => {
+          if (item.main.temp_min < minTemp) minTemp = item.main.temp_min;
+          if (item.main.temp_max > maxTemp) maxTemp = item.main.temp_max;
+        });
+
+        const { icon, description } = todayData[0].weather[0];
+        const iconUrl = `https://openweathermap.org/img/wn/${icon}@2x.png`;
+
+        // Decide card color class
+        let tempClass = "cool";
+        if (maxTemp >= 35) tempClass = "hot";
+        else if (maxTemp >= 28) tempClass = "warm";
+
+        return `
+          <div class="city ${tempClass}">
+            <h2>${city}</h2>
+            <img src="${iconUrl}" alt="${description}" title="${description}">
+            <p>Min Temp: ${minTemp.toFixed(1)}°C</p>
+            <p>Max Temp: ${maxTemp.toFixed(1)}°C</p>
+            <small>${description}</small>
+          </div>
+        `;
+      } catch (error) {
+        console.error("Error fetching for", city, error);
+        return `<div class="city"><h2>${city}</h2><p>Could not load data</p></div>`;
+      }
+    }
+
+    async function loadAllCities() {
+      const weatherDiv = document.getElementById("weather");
+      weatherDiv.innerHTML = "Loading weather data...";
+
+      let output = "";
+      for (const city of cities) {
+        output += await getDailyMinMax(city);
+      }
+      weatherDiv.innerHTML = output;
+    }
+
+    loadAllCities();
+  </script>
+</body>
+</html>
