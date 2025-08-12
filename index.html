@@ -57,7 +57,7 @@
   <div id="weather">Loading...</div>
 
   <script>
-    const apiKey = "64d66ba7b7ec240079255952fb953f7b"; // replace with your actual key
+    const apiKey = "64d66ba7b7ec240079255952fb953f7b";
     const cities = ["Mumbai", "Delhi", "Bengaluru", "Kolkata", "Chennai"];
 
     async function getDailyMinMax(city) {
@@ -87,7 +87,7 @@
         const { icon, description } = todayData[0].weather[0];
         const iconUrl = `https://openweathermap.org/img/wn/${icon}@2x.png`;
 
-        // Decide card color class
+        
         let tempClass = "cool";
         if (maxTemp >= 35) tempClass = "hot";
         else if (maxTemp >= 28) tempClass = "warm";
